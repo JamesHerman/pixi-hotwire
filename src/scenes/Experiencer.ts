@@ -5,7 +5,6 @@ export class Scene extends Container {
     constructor(screenWidth: number, screenHeight: number) {
         super();
 
-
         this.clampy = Sprite.from("./clampies/clampy.png");
 
         this.clampy.anchor.set(0.5);

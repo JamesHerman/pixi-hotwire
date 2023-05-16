@@ -1,4 +1,5 @@
 import { AnimatedSprite, FederatedPointerEvent, Container, Texture, TextureSource, Ticker} from "pixi.js";
+import { Skill } from '../../static/structures/Skill'
 
 export class Scene extends Container {
     private animatedClampy: AnimatedSprite;
@@ -7,6 +8,22 @@ export class Scene extends Container {
         super(); // Mandatory! This calls the superclass constructor.
 
         // see how members of the class need `this.`?
+        let mining = new Skill()
+        console.log(mining.getLevel())
+        while (mining.getLevel() < 2) {
+            console.log('Checking mining')
+        mining.check({
+            successRate: 0.55,
+            level: 2,
+            outcome: (result: boolean) => {
+                if (result) {
+                    console.log('the mining was a success, mining level: ' + mining.getLevel())
+                }
+                else {
+                    console.log('The mining failed')
+                }
+            }
+        })}
 
 
         // This is an array of strings, we need an array of Texture
