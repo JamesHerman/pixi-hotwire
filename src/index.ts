@@ -1,11 +1,11 @@
 import { Application } from 'pixi.js'
-import { Scene } from './scenes/Miningtest'
+import { Scene } from './scenes/Maptest'
 
 const app = new Application({
 	view: document.getElementById("pixi-canvas") as HTMLCanvasElement,
 	resolution: window.devicePixelRatio || 1,
 	autoDensity: true,
-	backgroundColor: 0x6495ed,
+	backgroundColor: 0x000000,
 	resizeTo: window,
 });
 
