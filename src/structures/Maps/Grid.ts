@@ -15,20 +15,21 @@ export class Grid extends Container{
         this.cells = new Array<Array<Cell>>;
         this.type = type;
         this.desired.scale = scale;
-        console.log(width, height)
+        //console.log(width, height)
         for (let x = 0; x < width; x++) {
             let column:Cell[] = new Array<Cell>();
             for (let y = 0; y < height; y++) {
                 column.push(new Cell(x,y,this));
-                this.addChild(column[y].getImage())
+                this.addChild(column[y])
             }
             this.cells.push(column);
         }
+        this.eventMode = 'dynamic';
         this.onpointerdown = () => {
             this.followPointer = true
         }
+
         this.onpointermove = (e) => {
-            e.bubbles = false;
             this.followPointer ? this.move(e.movementX/2,e.movementY/2) : null;
         }
         
@@ -60,6 +61,10 @@ export class Grid extends Container{
         this.scale.set(this.desired.scale)
     }
 
+    public isFollowingPointer(): boolean {
+        return this.followPointer;
+    }
+
     public getCell(x: number, y: number):Cell {
         return(this.cells[x][y])
     }
@@ -75,16 +80,16 @@ export class Grid extends Container{
         (x > 0) ? neighbors.push(
             this.cells[x-1][y],
         ) : null;
-        console.log(this.cells.length);
-        console.log("x: ",x);
-        console.log("y: ",y);
+        //console.log(this.cells.length);
+        //console.log("x: ",x);
+        //console.log("y: ",y);
         (x + 1 < this.cells.length) ? neighbors.push(
             this.cells[x+1][y],
         ) : null;
 
         if (this.type == 'hex') {
             let shiftY = (x%2) ? y + 1 : y + -1;
-            console.log("shifty: ",shiftY);
+            //console.log("shifty: ",shiftY);
             (x > 0 && 0 <= shiftY && shiftY < this.cells[0].length) ? neighbors.push(
                 this.cells[x-1][shiftY],
             ) : null;

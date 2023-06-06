@@ -18,17 +18,18 @@ module.exports = (env, argv) => {
         // Config for your testing server
         devServer: {
             compress: true,
-            allowedHosts: "all", // If you are using WebpackDevServer as your production server, please fix this line!
-            static: false,
+            allowedHosts: "DESKTOP-FVKLHRT",
+            static: ['static'],
             client: {
-                logging: "warn",
+                logging: "info",
                 overlay: {
                     errors: true,
                     warnings: false,
                 },
                 progress: true,
+
             },
-            port: 1234, host: '0.0.0.0'
+            port: 3000, host: '0.0.0.0',
         },
 
         // Web games are bigger than pages, disable the warnings that our game is too big.
