@@ -9,5 +9,7 @@ const app = new Application({
 	resizeTo: window,
 });
 
+app.renderer.plugins.interaction.autoPreventDefault = false;
+
 app.stage.addChild(new Scene(app.screen.width,app.screen.height))
 
