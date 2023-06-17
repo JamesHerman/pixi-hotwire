@@ -1,12 +1,13 @@
 import { Container, Sprite, Ticker} from "pixi.js";
 import { Cell } from "./MapCell";
-import { SpriteGenerator } from "../Generators/SpriteGenerator";
+import { Generator } from "../Generators/Generator";
 
 export class Grid extends Container{
-    private cells: Cell[][];
+    private cells: { [key: number]: { [key: number]: Cell }};
     private nullCell = new Cell(-1,-1,this,new Sprite);
     private hoveredCell: Cell;
     private selectedCell: Cell;
+    private spriteGenerator: Generator;
     private lastTouch: any;
     private followPointer = false;
     private desired = {
@@ -15,25 +16,26 @@ export class Grid extends Container{
         scale: 1,
     }
     private type: string;
-    constructor(width: number,height:number,type: 'hex' | 'square',scale:number, spriteGenerator: SpriteGenerator) {
+    constructor(width: number,height:number,type: 'hex' | 'square',scale:number, spriteGenerator: Generator) {
         super();
+        this.sortableChildren = true;
         this.hoveredCell = this.nullCell;
         this.selectedCell = this.nullCell;
         this.cells = new Array<Array<Cell>>;
         this.type = type;
         this.desired.scale = scale;
+        this.spriteGenerator = spriteGenerator;
         //console.log(width, height)
-        for (let x = 0; x < width; x++) {
-            let column:Cell[] = new Array<Cell>();
-            this.cells.push(column);
-        }
         for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x+=2) {
-                this.cells[x].push(new Cell(x,y,this,spriteGenerator.Generate()));
-                this.addChild(this.cells[x][y]);
-            }
-            for (let x = 1; x < width; x+=2) {
-                this.cells[x].push(new Cell(x,y,this,spriteGenerator.Generate()));
+            for (let x = 0; x < width; x++) {
+                let cell = new Cell(x,y,this,Sprite.from(
+                    this.spriteGenerator.Generate({
+                        relatives: this.getNeighbors(x,y).map(
+                            (cell: Cell) => {
+                                return {relationship: 'neighbor', relative: cell}
+                            }
+                        )})));
+                this.cells[x]!==undefined ? this.cells[x][y] = cell : this.cells[x] = {[y] : cell};
                 this.addChild(this.cells[x][y]);
             }
         }
@@ -95,6 +97,9 @@ export class Grid extends Container{
         this.selectedCell.deselect();
         this.selectedCell = cell;
         this.selectedCell.select();
+        if (this.selectedCell.getNeighbors().length < (this.type == 'hex'? 6:4)) {
+            this.generateNeighbors(this.selectedCell.getCoordinates().x,this.selectedCell.getCoordinates().y)
+        }
     }
 
     public getSelectedCell(): Cell {
@@ -106,37 +111,109 @@ export class Grid extends Container{
     }
 
     public getCell(x: number, y: number):Cell {
+        console.log(x,y)
         return(this.cells[x][y])
+    }
+
+    private generateNeighbors(x: number, y: number): void {
+        console.log(x,y)
+        if (!this.cells[x] || !this.cells[x][y+1]) {
+            this.cells[x][y+1] = new Cell(x,y+1,this,Sprite.from(
+                this.spriteGenerator.Generate({
+                    relatives: this.getNeighbors(x,y+1).map(
+                        (cell: Cell) => {
+                            return {relationship: 'neighbor', relative: cell}
+                        }
+                    )})));
+            this.addChild(this.cells[x][y+1]);
+        }
+        if (!this.cells[x] ||!this.cells[x][y-1]) {
+            this.cells[x][y-1] = new Cell(x,y-1,this,Sprite.from(
+                this.spriteGenerator.Generate({
+                    relatives: this.getNeighbors(x,y-1).map(
+                        (cell: Cell) => {
+                            return {relationship: 'neighbor', relative: cell}
+                        }
+                    )})));
+            this.addChild(this.cells[x][y-1]);
+        }
+        if (!this.cells[x-1] || !this.cells[x-1][y]) {
+            let cell = new Cell(x-1,y,this,Sprite.from(
+                this.spriteGenerator.Generate({
+                    relatives: this.getNeighbors(x-1,y).map(
+                        (cell: Cell) => {
+                            return {relationship: 'neighbor', relative: cell}
+                        }
+                    )})));
+            this.cells[x-1]!==undefined ? this.cells[x-1][y] = cell : this.cells[x-1] = {[y] : cell};
+            this.addChild(this.cells[x-1][y]);
+        }
+        if (!this.cells[x+1] || !this.cells[x+1][y]) {
+            let cell = new Cell(x+1,y,this,Sprite.from(
+                this.spriteGenerator.Generate({
+                    relatives: this.getNeighbors(x+1,y).map(
+                        (cell: Cell) => {
+                            return {relationship: 'neighbor', relative: cell}
+                        }
+                    )})));
+            this.cells[x+1]!==undefined ? this.cells[x+1][y] = cell : this.cells[x+1] = {[y] : cell};
+            this.addChild(this.cells[x+1][y]);
+        }
+        if (this.type == 'hex') {
+            if (!this.cells[x-1] || !this.cells[x-1][y+1]) {
+                let cell = new Cell(x-1,y+1,this,Sprite.from(
+                    this.spriteGenerator.Generate({
+                        relatives: this.getNeighbors(x-1,y+1).map(
+                            (cell: Cell) => {
+                                return {relationship: 'neighbor', relative: cell}
+                            }
+                        )})));
+                this.cells[x-1]!==undefined ? this.cells[x-1][y+1] = cell : this.cells[x-1] = {[y-1] : cell};
+                this.addChild(this.cells[x-1][y+1]);
+            }
+            if (!this.cells[x+1] || !this.cells[x+1][y-1]) {
+                let cell = new Cell(x+1,y-1,this,Sprite.from(
+                    this.spriteGenerator.Generate({
+                        relatives: this.getNeighbors(x+1,y-1).map(
+                            (cell: Cell) => {
+                                return {relationship: 'neighbor', relative: cell}
+                            }
+                        )})));
+                this.cells[x+1]!==undefined ? this.cells[x+1][y-1] = cell : this.cells[x+1] = {[y+1] : cell};
+                this.addChild(this.cells[x+1][y-1]);
+            }
+        }
+        
+
+
     }
 
     public getNeighbors(x: number, y: number):Cell[] {
         let neighbors:Cell[]  = new Array<Cell>();
-        (y > 0) ? neighbors.push(
-            this.cells[x][y-1],
-        ) : null;
-        (y + 1 < this.cells[0].length) ? neighbors.push(
-            this.cells[x][y+1],
-        ) : null;
-        (x > 0) ? neighbors.push(
+        if (this.cells[x]!=undefined) {
+            this.cells[x][y-1] ? neighbors.push(
+                this.cells[x][y-1],
+            ) : null;
+            this.cells[x][y+1] ? neighbors.push(
+                this.cells[x][y+1],
+            ) : null;
+        }
+        (this.cells[x-1] && this.cells[x-1][y]) ? neighbors.push(
             this.cells[x-1][y],
         ) : null;
-        //console.log(this.cells.length);
-        //console.log("x: ",x);
-        //console.log("y: ",y);
-        (x + 1 < this.cells.length) ? neighbors.push(
+        (this.cells[x+1] && this.cells[x+1][y]) ? neighbors.push(
             this.cells[x+1][y],
         ) : null;
 
         if (this.type == 'hex') {
-            let shiftY = (x%2) ? y + 1 : y + -1;
-            //console.log("shifty: ",shiftY);
-            (x > 0 && 0 <= shiftY && shiftY < this.cells[0].length) ? neighbors.push(
-                this.cells[x-1][shiftY],
+            (this.cells[x-1] && this.cells[x-1][y+1]) ? neighbors.push(
+                this.cells[x-1][y+1],
             ) : null;
-            (x + 1 < this.cells.length && 0 <= shiftY && shiftY < this.cells[0].length) ? neighbors.push(
-                this.cells[x+1][shiftY],
+            (this.cells[x+1] && this.cells[x+1][y-1]) ? neighbors.push(
+                this.cells[x+1][y-1],
             ) : null;
-        }        
+        }
+        console.log(neighbors)
         return (neighbors)
     }
 }
