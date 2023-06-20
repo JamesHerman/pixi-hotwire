@@ -1,20 +1,21 @@
-import { Container, Graphics, Rectangle } from "pixi.js"
+import { Application, Container, Graphics, Rectangle } from "pixi.js"
 import { Grid } from "../structures/Maps/Grid";
 import { Character } from "../structures/Character";
 import { Condition, Generator, ProbabilityDistribution } from "../structures/Generators/Generator";
+import { Menu } from "../menus/Menu";
+import { Linear } from "../structures/Maps/Linear";
 export class Scene extends Container {
+    private app : Application;
 
-    constructor(screenWidth: number, screenHeight: number) {
+    constructor(app: Application) {
         super()
-        const cellHeight = screenHeight/30
-        screenWidth;
+        this.app = app;
+        const cellHeight = app.screen.height/30;
         //const cellWidth = cellHeight * 3/1.732;
         const hero = new Character();
         const notBesideHouses: Condition = {condition: (probability: number, context?: any):number =>{
             if (context) {
-                console.log(context)
                 for (let relative of context.relatives) {
-                    console.log(relative)
                     if (relative.relative !== undefined && (relative.relative.tile === './hextiles/building_cabin_E.png' || relative.relative.tile === './hextiles/building_house_E.png')) {
                         return probability * 0;
                     }
@@ -69,17 +70,29 @@ export class Scene extends Container {
         const spriteGenerator = new Generator(probabilities);
         const map = new Grid(1,1,'hex', cellHeight, spriteGenerator);
         this.addChild(map);
+
         hero.sprite.scale.set(0.0014);
         hero.sprite.anchor.set(.5,.66);
         hero.sprite.hitArea = new Rectangle(0,0,0,0)
         map.getCell(0,0).addChild(hero.sprite);
-        
         let spriteMask = new Graphics();
         spriteMask.beginFill(0xFFFFFF);
         spriteMask.drawRect(-.5,-.25,1,.75);
-        map.on('pointertap',() => {
-            gotToSelectedCell(map);
+        map.on('pointertap',(event) => {
+            let menu = new Menu([
+                {name: 'Go here', action: ()=>gotToSelectedCell(map)},
+                {name: 'Cancel', action: ()=>{}},
+                {name: 'Explore', action: ()=> {
+                    this.explore(map.getSelectedCell())
+                    this.visible=false;
+                }}
+            ], {x: event.global.x, y: event.global.y-30}, 1);
+            this.addChild(menu);
+            menu.onpointerleave = () => {
+                menu.destroy();
+            }
         });
+        
 
         let gotToSelectedCell = (map: Grid) => {
             let cell = map.getSelectedCell();
@@ -111,5 +124,14 @@ export class Scene extends Container {
             }
         }
 
+
+    }
+    private explore = (cell: any) => {
+        let linear = new Linear(cell.tile);
+        this.app.stage.addChild(linear);
+        linear.on('pointertap', () => {
+            linear.destroy();
+            this.visible = true;
+        })
     }
 }

@@ -23,6 +23,8 @@ export class Grid extends Container{
         this.selectedCell = this.nullCell;
         this.cells = new Array<Array<Cell>>;
         this.type = type;
+        this.desired.x = screen.width/4;
+        this.desired.y = screen.height/2;
         this.desired.scale = scale;
         this.spriteGenerator = spriteGenerator;
         //console.log(width, height)
@@ -111,12 +113,10 @@ export class Grid extends Container{
     }
 
     public getCell(x: number, y: number):Cell {
-        console.log(x,y)
         return(this.cells[x][y])
     }
 
     private generateNeighbors(x: number, y: number): void {
-        console.log(x,y)
         if (!this.cells[x] || !this.cells[x][y+1]) {
             this.cells[x][y+1] = new Cell(x,y+1,this,Sprite.from(
                 this.spriteGenerator.Generate({
@@ -213,7 +213,6 @@ export class Grid extends Container{
                 this.cells[x+1][y-1],
             ) : null;
         }
-        console.log(neighbors)
         return (neighbors)
     }
 }
