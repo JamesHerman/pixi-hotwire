@@ -5,6 +5,7 @@ export class CoreMenuButton extends Sprite {
     private button: Graphics;
     private app: Application;
     private label: Text = new Text('Menu');
+    private menuColor: number = 0xAD8154;
     private mainMenuOptions: MenuOption[] = [
         { name: 'New Game', action: () => {console.log('New Game')} },
         { name: 'Party', action: () => {console.log('Party')} },
@@ -18,11 +19,11 @@ export class CoreMenuButton extends Sprite {
         this.location.x = application.screen.width/2;
         this.location.y = application.screen.height/2;
         this.button = new Graphics;
-        this.button.beginFill(0x000000);
+        this.button.beginFill(this.menuColor);
         this.button.drawRect(-100,0,100,50);
         this.button.alpha = 0.5;
         this.button.endFill();
-        this.label.style = {fill: 0xFFFFFF};
+        this.label.style = {fill: 0x351505};
         this.label.anchor.set(0.5);
         this.label.x = -50;
         this.label.y = 25;
@@ -50,5 +51,11 @@ export class CoreMenuButton extends Sprite {
         let y = this.app.screen.height/2;
         let menu = new Menu(this.mainMenuOptions, {x,y}, 1);
         this.app.stage.addChild(menu);
+        menu.onpointertap = () => {
+            menu.destroy();
+        }
+        this.button.on('pointerdown', () => {
+            menu.destroy();
+        }, 'once')
     }
 }

@@ -1,13 +1,12 @@
-import { Container, Sprite, Ticker} from "pixi.js";
+import { Container, Ticker} from "pixi.js";
 import { Cell } from "./MapCell";
-import { Generator } from "../Generators/Generator";
 
 export class Grid extends Container{
     private cells: { [key: number]: { [key: number]: Cell }};
-    private nullCell = new Cell(-1,-1,this,new Sprite);
+    private nullCell = new Cell(-1,-1,this);
     private hoveredCell: Cell;
     private selectedCell: Cell;
-    private spriteGenerator: Generator;
+    private cellType: any;
     private lastTouch: any;
     private followPointer = false;
     private desired = {
@@ -16,29 +15,20 @@ export class Grid extends Container{
         scale: 1,
     }
     private type: string;
-    constructor(width: number,height:number,type: 'hex' | 'square',scale:number, spriteGenerator: Generator) {
+    constructor(width: number,height:number,type: 'hex' | 'square',scale:number, cellType?: any) {
         super();
         this.sortableChildren = true;
         this.hoveredCell = this.nullCell;
         this.selectedCell = this.nullCell;
+        this.cellType = cellType || Cell;
         this.cells = new Array<Array<Cell>>;
         this.type = type;
         this.desired.x = screen.width/4;
         this.desired.y = screen.height/2;
         this.desired.scale = scale;
-        this.spriteGenerator = spriteGenerator;
-        //console.log(width, height)
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
-                let cell = new Cell(x,y,this,Sprite.from(
-                    this.spriteGenerator.Generate({
-                        relatives: this.getNeighbors(x,y).map(
-                            (cell: Cell) => {
-                                return {relationship: 'neighbor', relative: cell}
-                            }
-                        )})));
-                this.cells[x]!==undefined ? this.cells[x][y] = cell : this.cells[x] = {[y] : cell};
-                this.addChild(this.cells[x][y]);
+                this.generateCell(x,y);
             }
         }
         this.eventMode = 'dynamic';
@@ -89,19 +79,40 @@ export class Grid extends Container{
 
     public setHoveredCell(cell: Cell) {
         this.hoveredCell = cell;
+        if (this.hoveredCell.getNeighbors().length < (this.type == 'hex'? 6:4)) {
+            this.generateNeighbors(this.hoveredCell.getCoordinates().x,this.hoveredCell.getCoordinates().y)
+        }
+        for (let neighborCell of this.hoveredCell.getNeighbors()) {
+            if (neighborCell.getNeighbors().length < (this.type == 'hex'? 6:4)) {
+                this.generateNeighbors(neighborCell.getCoordinates().x,neighborCell.getCoordinates().y)
+            }
+        }
     }
 
     public getHoveredCell(): Cell {
         return this.hoveredCell;
     }
 
-    public setSelectedCell(cell: Cell) {
+    public setSelectedCell(cell: Cell | null = null) {
+        if (cell === null) {
+            this.selectedCell.deselect();
+            this.selectedCell = this.nullCell;
+            return;
+        }
+        else {
+            
         this.selectedCell.deselect();
         this.selectedCell = cell;
         this.selectedCell.select();
-        if (this.selectedCell.getNeighbors().length < (this.type == 'hex'? 6:4)) {
-            this.generateNeighbors(this.selectedCell.getCoordinates().x,this.selectedCell.getCoordinates().y)
         }
+
+    }
+    
+    private generateCell(x: number, y: number): void {
+        console.log(this.type)
+        let cell = new this.cellType(x,y,this,this.type);
+        this.cells[x]!==undefined ? this.cells[x][y] = cell : this.cells[x] = {[y] : cell};
+        this.addChild(this.cells[x][y]);
     }
 
     public getSelectedCell(): Cell {
@@ -118,69 +129,24 @@ export class Grid extends Container{
 
     private generateNeighbors(x: number, y: number): void {
         if (!this.cells[x] || !this.cells[x][y+1]) {
-            this.cells[x][y+1] = new Cell(x,y+1,this,Sprite.from(
-                this.spriteGenerator.Generate({
-                    relatives: this.getNeighbors(x,y+1).map(
-                        (cell: Cell) => {
-                            return {relationship: 'neighbor', relative: cell}
-                        }
-                    )})));
-            this.addChild(this.cells[x][y+1]);
+            this.generateCell(x,y+1);
         }
         if (!this.cells[x] ||!this.cells[x][y-1]) {
-            this.cells[x][y-1] = new Cell(x,y-1,this,Sprite.from(
-                this.spriteGenerator.Generate({
-                    relatives: this.getNeighbors(x,y-1).map(
-                        (cell: Cell) => {
-                            return {relationship: 'neighbor', relative: cell}
-                        }
-                    )})));
-            this.addChild(this.cells[x][y-1]);
+            this.generateCell(x,y-1);
         }
         if (!this.cells[x-1] || !this.cells[x-1][y]) {
-            let cell = new Cell(x-1,y,this,Sprite.from(
-                this.spriteGenerator.Generate({
-                    relatives: this.getNeighbors(x-1,y).map(
-                        (cell: Cell) => {
-                            return {relationship: 'neighbor', relative: cell}
-                        }
-                    )})));
-            this.cells[x-1]!==undefined ? this.cells[x-1][y] = cell : this.cells[x-1] = {[y] : cell};
-            this.addChild(this.cells[x-1][y]);
+            this.generateCell(x-1,y);
         }
         if (!this.cells[x+1] || !this.cells[x+1][y]) {
-            let cell = new Cell(x+1,y,this,Sprite.from(
-                this.spriteGenerator.Generate({
-                    relatives: this.getNeighbors(x+1,y).map(
-                        (cell: Cell) => {
-                            return {relationship: 'neighbor', relative: cell}
-                        }
-                    )})));
-            this.cells[x+1]!==undefined ? this.cells[x+1][y] = cell : this.cells[x+1] = {[y] : cell};
-            this.addChild(this.cells[x+1][y]);
+            this.generateCell(x+1,y);
         }
         if (this.type == 'hex') {
             if (!this.cells[x-1] || !this.cells[x-1][y+1]) {
-                let cell = new Cell(x-1,y+1,this,Sprite.from(
-                    this.spriteGenerator.Generate({
-                        relatives: this.getNeighbors(x-1,y+1).map(
-                            (cell: Cell) => {
-                                return {relationship: 'neighbor', relative: cell}
-                            }
-                        )})));
-                this.cells[x-1]!==undefined ? this.cells[x-1][y+1] = cell : this.cells[x-1] = {[y-1] : cell};
-                this.addChild(this.cells[x-1][y+1]);
+                this.generateCell(x-1,y+1);
+
             }
             if (!this.cells[x+1] || !this.cells[x+1][y-1]) {
-                let cell = new Cell(x+1,y-1,this,Sprite.from(
-                    this.spriteGenerator.Generate({
-                        relatives: this.getNeighbors(x+1,y-1).map(
-                            (cell: Cell) => {
-                                return {relationship: 'neighbor', relative: cell}
-                            }
-                        )})));
-                this.cells[x+1]!==undefined ? this.cells[x+1][y-1] = cell : this.cells[x+1] = {[y+1] : cell};
-                this.addChild(this.cells[x+1][y-1]);
+                this.generateCell(x+1,y-1);
             }
         }
         
