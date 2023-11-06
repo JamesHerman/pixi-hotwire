@@ -39,6 +39,7 @@ export class Menu extends Container {
         })
         optionContainer.on('pointerdown', () => {
             option.action();
+            this.destroy();
         })
         this.addChild(optionContainer);
     }

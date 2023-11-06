@@ -79,14 +79,6 @@ export class Grid extends Container{
 
     public setHoveredCell(cell: Cell) {
         this.hoveredCell = cell;
-        if (this.hoveredCell.getNeighbors().length < (this.type == 'hex'? 6:4)) {
-            this.generateNeighbors(this.hoveredCell.getCoordinates().x,this.hoveredCell.getCoordinates().y)
-        }
-        for (let neighborCell of this.hoveredCell.getNeighbors()) {
-            if (neighborCell.getNeighbors().length < (this.type == 'hex'? 6:4)) {
-                this.generateNeighbors(neighborCell.getCoordinates().x,neighborCell.getCoordinates().y)
-            }
-        }
     }
 
     public getHoveredCell(): Cell {
@@ -100,7 +92,6 @@ export class Grid extends Container{
             return;
         }
         else {
-            
         this.selectedCell.deselect();
         this.selectedCell = cell;
         this.selectedCell.select();
@@ -127,31 +118,30 @@ export class Grid extends Container{
         return(this.cells[x][y])
     }
 
-    private generateNeighbors(x: number, y: number): void {
-        if (!this.cells[x] || !this.cells[x][y+1]) {
-            this.generateCell(x,y+1);
-        }
-        if (!this.cells[x] ||!this.cells[x][y-1]) {
-            this.generateCell(x,y-1);
-        }
-        if (!this.cells[x-1] || !this.cells[x-1][y]) {
-            this.generateCell(x-1,y);
-        }
-        if (!this.cells[x+1] || !this.cells[x+1][y]) {
-            this.generateCell(x+1,y);
-        }
-        if (this.type == 'hex') {
-            if (!this.cells[x-1] || !this.cells[x-1][y+1]) {
-                this.generateCell(x-1,y+1);
-
+    public generateNeighbors(x: number, y: number): void {
+        if (this.cells[x][y].getNeighbors().length < (this.type == 'hex'? 6:4)) {
+            if (!this.cells[x] || !this.cells[x][y+1]) {
+                this.generateCell(x,y+1);
             }
-            if (!this.cells[x+1] || !this.cells[x+1][y-1]) {
-                this.generateCell(x+1,y-1);
+            if (!this.cells[x] ||!this.cells[x][y-1]) {
+                this.generateCell(x,y-1);
+            }
+            if (!this.cells[x-1] || !this.cells[x-1][y]) {
+                this.generateCell(x-1,y);
+            }
+            if (!this.cells[x+1] || !this.cells[x+1][y]) {
+                this.generateCell(x+1,y);
+            }
+            if (this.type == 'hex') {
+                if (!this.cells[x-1] || !this.cells[x-1][y+1]) {
+                    this.generateCell(x-1,y+1);
+
+                }
+                if (!this.cells[x+1] || !this.cells[x+1][y-1]) {
+                    this.generateCell(x+1,y-1);
+                }
             }
         }
-        
-
-
     }
 
     public getNeighbors(x: number, y: number):Cell[] {

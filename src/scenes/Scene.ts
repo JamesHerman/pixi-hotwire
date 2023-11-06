@@ -1,6 +1,6 @@
 import { AnimatedSprite, FederatedPointerEvent, Container, Texture, TextureSource, Ticker} from "pixi.js";
 
-export class Scene extends Container {
+export class AnimationTest extends Container {
     private animatedClampy: AnimatedSprite;
     private clampyVelocity: number = 6;
     constructor() {

@@ -1,6 +1,6 @@
 import { Container, FederatedPointerEvent, Sprite } from "pixi.js";
 
-export class Scene extends Container {
+export class PointerEventsTest extends Container {
     private clampy: Sprite;
     constructor(screenWidth: number, screenHeight: number) {
         super();

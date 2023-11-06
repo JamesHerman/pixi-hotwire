@@ -62,8 +62,6 @@ export class Terrain extends Cell {
         {event: './hextiles/dirt_E.png', probability: 0.03},
     ]};
 
-
-
     constructor(x: number, y: number, parent: Grid, type?: 'hex' | 'square') {
         super(x,y,parent,type);
         const spriteSelector = new Selector(this.probabilities);

@@ -56,6 +56,10 @@ export class Cell extends Container {
     public deselect(): void {
 //        this.selected = false;
 //        this.sprite.tint = 0xFFFFFF;
+    } 
+
+    public generateNeighbors() : void {
+        this.map.generateNeighbors(this.coordinates.x,this.coordinates.y);
     }
 
     public getCoordinates() : {x:number,y:number} {
